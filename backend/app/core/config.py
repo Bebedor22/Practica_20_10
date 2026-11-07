@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     )
     jwt_secret: str = "dev-secret-change-me-please-32-bytes-minimum"
     jwt_expires_minutes: int = 1440
+    seed_data: bool = True
 
     model_config = SettingsConfigDict(
         env_file=(".env", "../.env"),

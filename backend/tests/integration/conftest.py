@@ -13,6 +13,7 @@ from app.core.config import get_settings
 
 settings = get_settings()
 os.environ["DATABASE_URL"] = settings.test_database_url
+os.environ["SEED_DATA"] = "false"
 get_settings.cache_clear()
 
 from app.auth.models import User
