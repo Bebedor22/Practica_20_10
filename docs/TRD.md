@@ -2,12 +2,13 @@
 
 ## Stack tecnológico
 
-- **Frontend**: React 19 + Vite + pnpm
-- **Backend**: FastAPI + uv (v0.158.2 o versión compatible)
+- **Frontend**: React 19 + Vite 8 + pnpm 11 + TypeScript 7
+- **Servidor de frontend**: Nginx (build de producción)
+- **Backend**: FastAPI 0.162 + uv
 - **Base de datos**: PostgreSQL 18.6
-- **Infraestructura**: Docker + Docker Compose
-- **Lenguaje backend**: Python 3.12+
-- **Lenguaje frontend**: TypeScript + React
+- **Infraestructura**: Docker + Docker Compose con healthchecks
+- **Lenguaje backend**: Python 3.14
+- **Lenguaje frontend**: TypeScript + React; Node 24 para desarrollo y build
 
 ## Mobile-first con mejora progresiva
 
@@ -56,36 +57,36 @@
 
 ## Seguridad de autenticación
 
-- **Password hashing**: bcrypt como mínimo (costo por defecto 12)
-- **Rate limiting**: en el endpoint de login, máximo 5 intentos por 15 minutos por IP
-- **Headers de seguridad**: CSP, X-Content-Type-Options, X-Frame-Options
-- **HTTPS** obligatorio en producción
-- **Tokens**: JWT firmados con secret key, expiración 24h renovable
+- **Password hashing**: bcrypt costo 12 (implementado)
+- **Rate limiting**: en el endpoint de login, máximo 5 intentos por 15 minutos por IP (pendiente)
+- **Headers de seguridad**: CSP, X-Content-Type-Options, X-Frame-Options (pendiente)
+- **HTTPS** obligatorio en producción (pendiente de despliegue)
+- **Tokens**: JWT HS256 firmados con secret key, expiración 24h (implementado)
 
 ## Endpoints de API (FastAPI)
 
 ### Auth
 
-- `POST /auth/register` {name, email, password} → 201 user created
-- `POST /auth/login` {email, password} → 200 {token, user}
-- `POST /auth/recovery` {email} → 200 {sent link}
-- `GET /auth/recovery/confirm/{token}` → 200 {new password form}
-- `POST /auth/recovery/confirm` {token, new_password} → 200 {updated}
-- `GET /auth/me` → 200 {user data} (protected)
+- `POST /auth/register` {name, email, password} → 201 user created (implementado)
+- `POST /auth/login` {email, password} → 200 {access_token, token_type, user} (implementado)
+- `GET /auth/me` → 200 user data, requiere Bearer token (implementado)
+- `POST /auth/recovery` {email} → 200 {sent link} (pendiente)
+- `GET /auth/recovery/confirm/{token}` → 200 formulario (pendiente)
+- `POST /auth/recovery/confirm` {token, new_password} → 200 updated (pendiente)
 
 ### Courses (catálogo comunitario)
 
-- `GET /courses` → lista paginada con filtros {category, theme, validated}
-- `GET /courses/{id}` → 200 course detail
-- `POST /courses` → 201 {title, version, year, category, theme, url, instructor, has_quiz, requires_exam, extends_certificate, organization, validated, user_id}
-- `PUT /courses/{id}/validate` → 200 {validated: true} (admin/peer review)
+- `GET /courses` → lista paginada con filtros `q` y `category` (implementado)
+- `GET /courses/{id}` → 200 detalle de curso publicado (implementado)
+- `POST /courses` → 201 curso en `in_review`, requiere Bearer token (implementado)
+- `PUT /courses/{id}/validate` {approved} → 200 curso aprobado/rechazado; solo instructor/admin y no autor (implementado)
+- Filtros `theme`/`validated` y baja/edición de cursos (pendientes)
 
 ### Roadmaps (personales)
 
-- `GET /roadmaps` → lista roadmaps del usuario actual
-- `POST /roadmaps` → 201 {name, course_ids[], order[], user_id}
-- `PUT /roadmaps/{id}/reorder` → 200 {reordered course positions}
-- `DELETE /roadmaps/{id}/courses/{course_id}` → 200 {removed}
+- Modelo, reglas y repositorio persistente (implementado)
+- `GET /roadmaps`, `POST /roadmaps`, `PUT /roadmaps/{id}/reorder` y
+  `DELETE /roadmaps/{id}/courses/{course_id}` (pendientes)
 
 ## Modelos de datos (PostgreSQL)
 
@@ -95,7 +96,7 @@
 |-------|------|---------------|
 | id | SERIAL PK | not null |
 | name | VARCHAR(100) | not null |
-| email | VARCHAR(255) | unique, not null, valid email |
+| email | VARCHAR(255) | unique, not null; normalizado y validado por la API |
 | password_hash | VARCHAR(255) | not null (bcrypt) |
 | created_at | TIMESTAMP | default now() |
 | role | VARCHAR(20) | default 'user' (user, instructor, admin) |
@@ -116,9 +117,12 @@
 | requires_exam | BOOLEAN | default false |
 | extends_certificate | BOOLEAN | default false |
 | organization | VARCHAR(200) | nullable (quién lo avala) |
-| validated | BOOLEAN | default false |
+| status | VARCHAR(20) | default 'in_review'; draft, in_review, published, rejected |
 | user_id | INTEGER FK → users | not null (quien aportó) |
 | created_at | TIMESTAMP | default now() |
+
+`validated` no se persiste: se calcula como `status == 'published'` y se expone
+en la API por compatibilidad con el contrato del frontend.
 
 ### Table: roadmaps
 
@@ -135,7 +139,10 @@
 ## Versionado y dependencias
 
 - FastAPI con uv para gestor de dependencias
-- React 19 con TypeScript
+- React 19 con TypeScript, Vite 8, pnpm 11 y Vitest 5
 - PostgreSQL 18.6 como versión stable documentada en TRD
-- Docker Compose para desarrollo local con servicios: db, backend, frontend
-- .dockerignore para excluir node_modules, .venv, __pycache__, *.pyc
+- Docker Compose con servicios `postgres`, `backend` y `frontend`, healthchecks
+  y dependencias por estado saludable
+- Imágenes multi-stage: Python slim para la API y Nginx para el frontend
+- `.dockerignore` en backend y frontend para excluir `.venv`, `node_modules`,
+  `dist`, cachés y tests
