@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     test_database_url: str = (
         "postgresql+psycopg://roadmap:roadmap@localhost:5432/roadmap_cursos_test"
     )
-    jwt_secret: str = "dev-secret-change-me"
+    jwt_secret: str = "dev-secret-change-me-please-32-bytes-minimum"
     jwt_expires_minutes: int = 1440
 
     model_config = SettingsConfigDict(

@@ -29,6 +29,10 @@ class CourseUpdate(BaseModel):
     organization: str | None = None
 
 
+class CourseValidateRequest(BaseModel):
+    approved: bool = True
+
+
 class CourseRead(BaseModel):
     id: int
     title: str
