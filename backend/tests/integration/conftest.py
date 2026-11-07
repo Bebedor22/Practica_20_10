@@ -4,6 +4,7 @@ from itertools import count
 
 import psycopg
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine, make_url
 from sqlalchemy.orm import Session, sessionmaker
@@ -71,6 +72,28 @@ def db_session(test_engine: Engine) -> Iterator[Session]:
     )
     with factory() as session:
         yield session
+
+
+@pytest.fixture
+def client(test_engine: Engine) -> Iterator[TestClient]:
+    from app.db.session import get_db
+    from app.main import app
+
+    factory = sessionmaker(
+        bind=test_engine,
+        autoflush=False,
+        autocommit=False,
+        expire_on_commit=False,
+    )
+
+    def override_get_db() -> Iterator[Session]:
+        with factory() as session:
+            yield session
+
+    app.dependency_overrides[get_db] = override_get_db
+    with TestClient(app) as test_client:
+        yield test_client
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
