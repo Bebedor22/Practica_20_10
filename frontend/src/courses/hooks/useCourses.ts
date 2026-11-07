@@ -34,6 +34,9 @@ export function useCourses(pageSize = 12): UseCoursesResult {
 
     fetchCourses({ page, limit: pageSize, ...filters }, controller.signal)
       .then((data) => {
+        if (controller.signal.aborted) {
+          return
+        }
         setItems(data.items)
         setTotal(data.total)
         setTotalPages(data.totalPages)
@@ -58,11 +61,18 @@ export function useCourses(pageSize = 12): UseCoursesResult {
     return () => controller.abort()
   }, [page, pageSize, filters, refreshKey])
 
-  const setPage = useCallback((nextPage: number) => {
-    setLoading(true)
-    setError(null)
-    setPageState(Math.max(1, nextPage))
-  }, [])
+  const setPage = useCallback(
+    (nextPage: number) => {
+      const normalized = Math.max(1, nextPage)
+      if (normalized === page) {
+        return
+      }
+      setLoading(true)
+      setError(null)
+      setPageState(normalized)
+    },
+    [page],
+  )
 
   const setFilters = useCallback((nextFilters: CourseFilters) => {
     setLoading(true)
