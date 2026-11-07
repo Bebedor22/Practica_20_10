@@ -9,26 +9,57 @@ services:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER:-roadmap} -d $${POSTGRES_DB:-roadmap_cursos}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
 
   backend:
     build:
       context: ./backend
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-roadmap}:${POSTGRES_PASSWORD:-roadmap}@postgres:5432/${POSTGRES_DB:-roadmap_cursos}
-      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me-please-32-bytes-minimum}
       JWT_EXPIRES_MINUTES: ${JWT_EXPIRES_MINUTES:-1440}
+      SEED_DATA: ${SEED_DATA:-true}
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3).read()",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   frontend:
     build:
       context: ./frontend
     ports:
-      - "${FRONTEND_PORT:-5173}:5173"
+      - "${FRONTEND_PORT:-5173}:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
 
 volumes:
   pgdata:

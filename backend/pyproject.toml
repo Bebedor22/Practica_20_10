@@ -1,6 +1,6 @@
 [project]
 name = "roadmap-cursos-backend"
-version = "0.1.0"
+version = "0.2.0"
 description = "API FastAPI para el catálogo comunitario y los roadmaps de cursos"
 readme = "README.md"
 authors = [
@@ -8,12 +8,32 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "bcrypt>=5.0.0",
     "fastapi>=0.162.2",
     "psycopg[binary]>=3.3.8",
     "pydantic-settings>=2.16.2",
+    "pyjwt>=2.15.1",
     "sqlalchemy>=2.1.8",
     "uvicorn[standard]>=0.54.0",
 ]
 
 [tool.uv]
 package = false
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.2.0",
+    "pytest-cov>=7.1.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.coverage.run]
+source = ["app"]
+
+[tool.coverage.report]
+show_missing = true
