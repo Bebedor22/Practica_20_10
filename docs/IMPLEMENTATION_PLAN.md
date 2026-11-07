@@ -1,41 +1,53 @@
 # IMPLEMENTATION_PLAN.md — Plan de Implementación
 
-## Versión: 1.0 (Instancia A) / 1.1 (post-aprobado, Instancia B)
+## Versión: 1.0 (Instancia A) / 1.1 (post-aprobado, Instancia B) / 1.2 (workflow de clase)
 
 ### Flujo de Git documentado
 
-- **Tipo de flujo**: GitHub Flow (rama corta sobre main, PRs revisados)
-- **Ramas por instancia**:
-  - `main`: siempre estable, solo código probado y aprobado
-  - `docs-instancia-a`: rama para todos los 7 documentos de documentación
-  - `feature/*`: ramas por funcionalidad P0 (ej. `feature/auth-login`, `feature/courses-catalog`)
-  - `release/instancia-b`: rama creada tras aprobación del T1 (correo APROBADO)
-- **Convención de commits**: Conventional Commits 100%
-  - `docs: add PRD user stories` (nunca `docs: cambios` o `wip`)
-  - `feat: add course model` (nueva funcionalidad)
-  - `fix: rate limit login endpoint` (bug fix)
-  - `style: format TRD.md` (formato, no lógica)
-  - `refactor: reorganize folder structure` (arquitectura screaming)
+- **Tipo de flujo**: integración con rama `dev` y releases taggeados en `main`.
+- **Ramas**:
+  - `main`: solo recibe `dev` al cerrar un release; cada release lleva tag `vX.Y.Z`.
+  - `dev`: rama de integración; recibe los merges de todas las ramas de trabajo.
+  - `feat/T{N}-descripcion-corta`: una feature o ticket, nace desde `dev`.
+  - `fix/descripcion-corta`: un fix, nace desde `dev`.
+- **Convención de commits**: Conventional Commits 100% (`feat:`, `fix:`, `docs:`,
+  `docker:`, `chore:`, `test:`, `refactor:`). Sin `wip` ni mensajes vagos.
 - **Merge flow**:
-  1. Commits en rama feature/*
-  2. Push a origin
-  3. Crear Pull Request contra main (o release/instancia-b)
-  4. Revisión requerida (mínimo 1 approval)
-  5. Merge con squash o merge commit preservando historia
-- **Etiquetas**: `v0.1-instancia-a` tras aprobación docs, `v1.0-instancia-b` tras MVP completo
+  1. Crear la rama de trabajo desde `dev`.
+  2. Commits convencionales en la rama.
+  3. Merge `--no-ff` de vuelta a `dev` y borrar la rama.
+  4. Al cerrar release: actualizar CHANGELOG en `dev`, merge `dev → main` y tag anotado.
+- **Versionado**:
+  - `v0.y.z` mientras el producto es inestable.
+  - MAJOR por cambios incompatibles, MINOR por features compatibles y PATCH por fixes.
+- **Etiquetas**: `v0.1.0` (scaffold) y `v0.2.0` (testing, Docker multi-stage y cierre).
+
+### Registro de tickets de clase — Scaffold (22/10/2026)
+
+- [x] **T1 — Setup del workflow + scaffold del repo**
+  - Rama: `feat/T1-scaffold-estructura` · Commit: `d995949`
+- [x] **T2 — Backend mínimo (FastAPI + uv)**
+  - Rama: `feat/T2-backend-minimo` · Commit: `3c1eb55`
+- [x] **T3 — Frontend mínimo (React + Vite + pnpm)**
+  - Rama: `feat/T3-frontend-minimo` · Commit: `18f6740`
+- [x] **T4 — Docker Compose de desarrollo (simple)**
+  - Rama: `feat/T4-docker-compose-dev` · Commit: `af7b66d`
+- [x] **T5 — Release v0.1.0**
+  - Merge `dev → main` · Tag: `v0.1.0`
 
 ### Módulos P0 (orden de dependencia)
 
 #### Módulo 1: Configuración y estructura base (P0.1)
 - **Tiempo estimado**: 2 horas
+- **Estado**: completado en el release `v0.1.0` (tickets T1–T5)
 - **Tareas**:
-  - [ ] Configurar repositorio con estructura inicial
-  - [ ] `git init`, `.gitignore` para React/Vite/pnpm + FastAPI/uv
-  - [ ] `README.md` con instrucciones de setup inicial
-  - [ ] Estructura de carpetas `src/` con arquitectura screaming
-  - [ ] Configurar Vite + React 19 + TypeScript
-  - [ ] Configurar FastAPI + uv con entorno virtual
-  - [ ] Docker Compose básico (servicios: db, backend, frontend)
+  - [x] Configurar repositorio con estructura inicial
+  - [x] `git init`, `.gitignore` para React/Vite/pnpm + FastAPI/uv
+  - [x] `README.md` con instrucciones de setup inicial
+  - [x] Estructura de carpetas `src/` con arquitectura screaming
+  - [x] Configurar Vite + React 19 + TypeScript
+  - [x] Configurar FastAPI + uv con entorno virtual
+  - [x] Docker Compose básico (servicios: db, backend, frontend)
 - **Checklist "bien"**: repo con historia git, estructura de carpetas, README verifiable
 
 #### Módulo 2: Autenticación básica (P0.2)
