@@ -1,0 +1,35 @@
+# Python / uv
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+.python-version
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Node / pnpm
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.vite/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

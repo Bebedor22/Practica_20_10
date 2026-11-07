@@ -1,0 +1,34 @@
+services:
+  postgres:
+    image: postgres:18.6
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-roadmap_cursos}
+      POSTGRES_USER: ${POSTGRES_USER:-roadmap}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-roadmap}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-roadmap}:${POSTGRES_PASSWORD:-roadmap}@postgres:5432/${POSTGRES_DB:-roadmap_cursos}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      JWT_EXPIRES_MINUTES: ${JWT_EXPIRES_MINUTES:-1440}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      - postgres
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
